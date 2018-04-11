@@ -3,6 +3,7 @@ package com.daandtu.webscraper;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.os.Build;
 import android.view.View;
 import android.webkit.JavascriptInterface;
@@ -39,8 +40,16 @@ public class WebScraper {
 
     }
 
-    public Bitmap takeScreenshot(){
-        return null;
+    public Bitmap takeScreenshot(View parentView){
+        //TODO
+        int specWidth = View.MeasureSpec.makeMeasureSpec(parentView.getWidth(), View.MeasureSpec.AT_MOST);
+        int specHeight = View.MeasureSpec.makeMeasureSpec(parentView.getHeight(), View.MeasureSpec.AT_MOST);
+        web.measure(specWidth, specHeight);
+        Bitmap b = Bitmap.createBitmap(parentView.getWidth(), parentView.getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(b);
+        web.layout(0, 0, web.getMeasuredWidth(), web.getMeasuredHeight());
+        web.draw(c);
+        return b;
     }
 
     public View getView(){
