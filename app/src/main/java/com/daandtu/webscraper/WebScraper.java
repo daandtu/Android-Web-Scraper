@@ -6,9 +6,11 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.os.Build;
 import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.RelativeLayout;
 
 @SuppressLint("SetJavaScriptEnabled")
 public class WebScraper {
@@ -40,16 +42,15 @@ public class WebScraper {
 
     }
 
-    public Bitmap takeScreenshot(View parentView){
-        //TODO
-        int specWidth = View.MeasureSpec.makeMeasureSpec(parentView.getWidth(), View.MeasureSpec.AT_MOST);
-        int specHeight = View.MeasureSpec.makeMeasureSpec(parentView.getHeight(), View.MeasureSpec.AT_MOST);
-        web.measure(specWidth, specHeight);
-        Bitmap b = Bitmap.createBitmap(parentView.getWidth(), parentView.getHeight(), Bitmap.Config.ARGB_8888);
-        Canvas c = new Canvas(b);
+    public Bitmap takeScreenshot(){
+        web.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        web.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
         web.layout(0, 0, web.getMeasuredWidth(), web.getMeasuredHeight());
+        Bitmap bitmap = Bitmap.createBitmap(web.getMeasuredWidth(), web.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
+        Canvas c = new Canvas(bitmap);
         web.draw(c);
-        return b;
+        return bitmap;
     }
 
     public View getView(){
