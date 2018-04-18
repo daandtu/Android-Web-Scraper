@@ -51,17 +51,17 @@ public class WebScraper {
     public void run(){
     }
 
-    public Bitmap takeScreenshot() {
+    public Bitmap takeScreenshot() { //Pay attention with big webpages
         return takeScreenshot(MAX,MAX);
     }
 
     public Bitmap takeScreenshot(int width, int height) {
         web.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-        if (width == 0){
+        if (width == MAX){
             width = web.getMeasuredWidth();
         }
-        if (height == 0){
+        if (height == MAX){
             height = web.getMeasuredHeight();
         }
         web.layout(0, 0, width, height);
