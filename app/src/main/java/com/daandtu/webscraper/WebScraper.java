@@ -38,8 +38,6 @@ public class WebScraper {
                 if (onpageloadedlistener!=null){
                     onpageloadedlistener.loaded(url);
                 }
-                view.loadUrl("javascript:window.HtmlViewer.showHTML" +
-                        "(document.getElementsByTagName('html')[0].innerHTML);");
 
                 web.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                         View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
@@ -78,6 +76,7 @@ public class WebScraper {
     }
 
     public String getHtml(){
+        //web.loadUrl("javascript:window.HtmlViewer.showHTML(document.getElementsByTagName('html')[0].innerHTML);");
         return Html;
     }
 
@@ -118,26 +117,6 @@ public class WebScraper {
         }
     }
 
-
-    private Bitmap resizeBitmap(Bitmap bitmap, int scaleSize) {
-        Bitmap resizedBitmap;
-        int originalWidth = bitmap.getWidth(), originalHeight = bitmap.getHeight(), newWidth = -1, newHeight = -1;
-        float fac;
-        if(originalHeight > originalWidth) {
-            newHeight = scaleSize ;
-            fac = (float) originalWidth/(float) originalHeight;
-            newWidth = (int) (newHeight*fac);
-        } else if(originalWidth > originalHeight) {
-            newWidth = scaleSize ;
-            fac = (float) originalHeight/ (float)originalWidth;
-            newHeight = (int) (newWidth*fac);
-        } else if(originalHeight == originalWidth) {
-            newHeight = scaleSize ;
-            newWidth = scaleSize ;
-        }
-        resizedBitmap = Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, false);
-        return resizedBitmap;
-    }
 
     public void setOnPageLoadedListener(onPageLoadedListener onpageloadedlistener){
         this.onpageloadedlistener = onpageloadedlistener;
