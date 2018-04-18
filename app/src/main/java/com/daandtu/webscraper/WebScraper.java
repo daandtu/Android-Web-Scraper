@@ -3,15 +3,11 @@ package com.daandtu.webscraper;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.os.Build;
-import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.RelativeLayout;
 
 @SuppressLint("SetJavaScriptEnabled")
 public class WebScraper {
@@ -20,6 +16,8 @@ public class WebScraper {
     private WebView web;
     private String Html;
     private String URL;
+
+    public static int MAX = 0;
 
     private onPageLoadedListener onpageloadedlistener;
 
@@ -42,27 +40,37 @@ public class WebScraper {
                 }
                 view.loadUrl("javascript:window.HtmlViewer.showHTML" +
                         "(document.getElementsByTagName('html')[0].innerHTML);");
+
+                web.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+                web.layout(0, 0, web.getMeasuredWidth(), web.getMeasuredHeight());
+                web.setDrawingCacheEnabled(true);
             }
         });
     }
 
-    public void run(){
 
+    public void run(){
     }
 
-    public Bitmap takeScreenshot(){
-        web.setLayoutParams(new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+    public Bitmap takeScreenshot() {
+        return takeScreenshot(MAX,MAX);
+    }
+
+    public Bitmap takeScreenshot(int width, int height) {
         web.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-        web.layout(0, 0, web.getMeasuredWidth(), web.getMeasuredHeight());
-        Bitmap bitmap = Bitmap.createBitmap(web.getMeasuredWidth(), web.getMeasuredHeight(), Bitmap.Config.ARGB_8888);
-        Canvas c = new Canvas(bitmap);
-        web.draw(c);
-        return bitmap;
-    }
-
-    public Bitmap takeScreenshot(int maxWidthOrHeight){
-        return resizeBitmap(takeScreenshot(),maxWidthOrHeight);
+        if (width == 0){
+            width = web.getMeasuredWidth();
+        }
+        if (height == 0){
+            height = web.getMeasuredHeight();
+        }
+        web.layout(0, 0, width, height);
+        web.setDrawingCacheEnabled(true);
+        try { Thread.sleep(30); }catch (InterruptedException ignored){}
+        try { return Bitmap.createBitmap(web.getDrawingCache());
+        }catch (NullPointerException ignored){return null;}
     }
 
     public View getView(){
@@ -71,6 +79,10 @@ public class WebScraper {
 
     public String getHtml(){
         return Html;
+    }
+
+    public void clearHistory(){
+        web.clearHistory();
     }
 
     public void setLoadImages(boolean enabled){
