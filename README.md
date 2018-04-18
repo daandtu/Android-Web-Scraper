@@ -1,4 +1,5 @@
 # android-web-scraper
 
-Add permission:
-<uses-permission android:name="android.permission.INTERNET"/> 
+Still in development
+<uses-permission 
+Add permission: android:name="android.permission.INTERNET"/> 
