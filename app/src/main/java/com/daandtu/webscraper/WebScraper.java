@@ -17,7 +17,7 @@ public class WebScraper {
     private String Html;
     private String URL;
 
-    public static int MAX = 0;
+    public static int MAX = -1;
 
     private onPageLoadedListener onpageloadedlistener;
 
@@ -56,12 +56,14 @@ public class WebScraper {
     }
 
     public Bitmap takeScreenshot(int width, int height) {
-        web.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-        if (width == MAX){
+        if (width < 0 || height < 0) {
+            web.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+        }
+        if (width < 0){
             width = web.getMeasuredWidth();
         }
-        if (height == MAX){
+        if (height < 0){
             height = web.getMeasuredHeight();
         }
         web.layout(0, 0, width, height);
@@ -69,6 +71,18 @@ public class WebScraper {
         try { Thread.sleep(30); }catch (InterruptedException ignored){}
         try { return Bitmap.createBitmap(web.getDrawingCache());
         }catch (NullPointerException ignored){return null;}
+    }
+
+    public int getMaxHeight(){
+        web.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+        return web.getMeasuredHeight();
+    }
+
+    public int getMaxWidth(){
+        web.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+        return web.getMeasuredWidth();
     }
 
     public View getView(){
