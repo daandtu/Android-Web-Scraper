@@ -47,10 +47,6 @@ public class WebScraper {
         });
     }
 
-
-    public void run(){
-    }
-
     public Bitmap takeScreenshot() { //Pay attention with big webpages
         return takeScreenshot(MAX,MAX);
     }
