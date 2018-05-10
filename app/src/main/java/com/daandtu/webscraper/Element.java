@@ -1,5 +1,7 @@
 package com.daandtu.webscraper;
 
+import android.util.Log;
+
 class Element {
 
     private String elementLocator;
@@ -12,7 +14,9 @@ class Element {
     }
 
     void setText(String text){
-        web.run("javascript:" + elementLocator + ".value = '" + text + "';void(0);");
+        String t = "javascript:" + elementLocator + ".textContent='" + text + "';void(0);";
+        Log.i("Logmsg",t);
+        web.run(t);
     }
 
     void click(){
