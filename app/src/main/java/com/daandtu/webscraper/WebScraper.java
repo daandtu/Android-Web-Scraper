@@ -18,6 +18,7 @@ public class WebScraper {
     private WebView web;
     private volatile String Html;
     private String URL;
+    private String userAgent;
 
     public static int MAX = -1;
 
@@ -34,6 +35,7 @@ public class WebScraper {
         web.getSettings().setLoadsImagesAutomatically(false);
         JSInterface jInterface = new JSInterface(context);
         web.addJavascriptInterface(jInterface, "HtmlViewer");
+        userAgent = web.getSettings().getUserAgentString();
         web.setWebViewClient(new WebViewClient() {
             public void onPageFinished(WebView view, String url) {
 
@@ -51,6 +53,15 @@ public class WebScraper {
 
     public Bitmap takeScreenshot() { //Pay attention with big webpages
         return takeScreenshot(MAX, MAX);
+    }
+
+    public void setUserAgentToDesktop(boolean desktop){
+        if (desktop){
+            String osString = userAgent.substring(userAgent.indexOf("("), userAgent.indexOf(")") + 1);
+            web.getSettings().setUserAgentString(userAgent.replace(osString,"(X11; Linux x86_64)"));
+        }else{
+            web.getSettings().setUserAgentString(userAgent);
+        }
     }
 
     public Bitmap takeScreenshot(int width, int height) {
@@ -91,6 +102,10 @@ public class WebScraper {
 
     public View getView() {
         return web;
+    }
+
+    public String getWebsiteTitle(){
+        return web.getTitle();
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
