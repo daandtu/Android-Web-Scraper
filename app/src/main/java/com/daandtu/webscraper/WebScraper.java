@@ -14,7 +14,7 @@ public class WebScraper {
 
     private Context context;
     private WebView web;
-    private String Html;
+    private volatile String Html;
     private String URL;
 
     public static int MAX = -1;
@@ -89,8 +89,11 @@ public class WebScraper {
         return web;
     }
 
+    @SuppressWarnings("StatementWithEmptyBody")
     public String getHtml(){
-        //web.loadUrl("javascript:window.HtmlViewer.showHTML(document.getElementsByTagName('html')[0].innerHTML);");
+        Html = null;
+        web.loadUrl("javascript:window.HtmlViewer.showHTML(document.getElementsByTagName('html')[0].innerHTML);");
+        while (Html == null){}
         return Html;
     }
 
@@ -99,8 +102,8 @@ public class WebScraper {
     }
 
     public void setLoadImages(boolean enabled){
-        web.getSettings().setBlockNetworkImage(false);
-        web.getSettings().setLoadsImagesAutomatically(true);
+        web.getSettings().setBlockNetworkImage(!enabled);
+        web.getSettings().setLoadsImagesAutomatically(enabled);
     }
 
     public void loadURL(String URL){
