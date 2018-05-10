@@ -5,6 +5,8 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.view.View;
+import android.webkit.CookieManager;
+import android.webkit.CookieSyncManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -21,10 +23,10 @@ public class WebScraper {
 
     private onPageLoadedListener onpageloadedlistener;
 
-    WebScraper(final Context context){
+    WebScraper(final Context context) {
         this.context = context;
         web = new WebView(context);
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             WebView.enableSlowWholeDocumentDraw();
         }
         web.getSettings().setJavaScriptEnabled(true);
@@ -35,7 +37,7 @@ public class WebScraper {
         web.setWebViewClient(new WebViewClient() {
             public void onPageFinished(WebView view, String url) {
 
-                if (onpageloadedlistener!=null){
+                if (onpageloadedlistener != null) {
                     onpageloadedlistener.loaded(url);
                 }
 
@@ -48,7 +50,7 @@ public class WebScraper {
     }
 
     public Bitmap takeScreenshot() { //Pay attention with big webpages
-        return takeScreenshot(MAX,MAX);
+        return takeScreenshot(MAX, MAX);
     }
 
     public Bitmap takeScreenshot(int width, int height) {
@@ -56,53 +58,82 @@ public class WebScraper {
             web.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                     View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
         }
-        if (width < 0){
+        if (width < 0) {
             width = web.getMeasuredWidth();
         }
-        if (height < 0){
+        if (height < 0) {
             height = web.getMeasuredHeight();
         }
         web.layout(0, 0, width, height);
         web.setDrawingCacheEnabled(true);
-        try { Thread.sleep(30); }catch (InterruptedException ignored){}
-        try { return Bitmap.createBitmap(web.getDrawingCache());
-        }catch (NullPointerException ignored){return null;}
+        try {
+            Thread.sleep(30);
+        } catch (InterruptedException ignored) {
+        }
+        try {
+            return Bitmap.createBitmap(web.getDrawingCache());
+        } catch (NullPointerException ignored) {
+            return null;
+        }
     }
 
-    public int getMaxHeight(){
+    public int getMaxHeight() {
         web.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
         return web.getMeasuredHeight();
     }
 
-    public int getMaxWidth(){
+    public int getMaxWidth() {
         web.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
         return web.getMeasuredWidth();
     }
 
-    public View getView(){
+    public View getView() {
         return web;
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
-    public String getHtml(){
+    public String getHtml() {
         Html = null;
         web.loadUrl("javascript:window.HtmlViewer.showHTML(document.getElementsByTagName('html')[0].innerHTML);");
-        while (Html == null){}
+        while (Html == null) {
+        }
         return Html;
     }
 
-    public void clearHistory(){
+    public void clearHistory() {
         web.clearHistory();
     }
+    public void clearCache() {
+        web.clearCache(true);
+    }
+    public void clearCookies(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+            CookieManager.getInstance().removeAllCookies(null);
+            CookieManager.getInstance().flush();
+        }else{
+            CookieSyncManager cookieSync = CookieSyncManager.createInstance(context);
+            cookieSync.startSync();
+            CookieManager cookieManager = CookieManager.getInstance();
+            cookieManager.removeAllCookie();
+            cookieManager.removeSessionCookie();
+            cookieSync.stopSync();
+            cookieSync.sync();
+        }
+    }
+    public void clearAll(){
+        clearHistory();
+        clearCache();
+        clearCookies();
+    }
 
-    public void setLoadImages(boolean enabled){
+    public void setLoadImages(boolean enabled) {
         web.getSettings().setBlockNetworkImage(!enabled);
         web.getSettings().setLoadsImagesAutomatically(enabled);
     }
 
-    public void loadURL(String URL){
+    public void loadURL(String URL) {
         this.URL = URL;
         web.loadUrl(URL);
     }
@@ -111,7 +142,7 @@ public class WebScraper {
         return URL;
     }
 
-    public void reload(){
+    public void reload() {
         web.reload();
     }
 
@@ -128,6 +159,27 @@ public class WebScraper {
         public void showHTML(String html) {
             Html = html;
         }
+    }
+
+    protected void run(String task){
+        web.loadUrl(task);
+    }
+
+    //FindWebViewElement
+    public Element findElementByClassName(String classname){
+        return new Element(this, "document.getElementsByClassName('" + classname + "')" );
+    }
+    public Element findElementById(String id){
+        return new Element(this, "document.getElementById('" + id + "')" );
+    }
+    public Element findElementByName(String name){
+        return new Element(this, "document.getElementsByName('" + name + "')" );
+    }
+    public Element findElementByXpath(String xpath){
+        return new Element(this, "document.evaluate(" + xpath + ", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue" );
+    }
+    public Element findElementByJavaScript(String javascript){
+        return new Element(this, javascript);
     }
 
 
