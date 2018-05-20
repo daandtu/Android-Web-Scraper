@@ -1,5 +1,6 @@
 # android-web-scraper
 Android Web Scraper is a simple library for android web automation.
+
 # Usage
 Initialisation and setup:
 ```
@@ -11,6 +12,15 @@ webScraper.loadURL("https://www.github.com/");
 If you want to see the browser automation in action:
 ```
 layout.addView(webScraper.getView());
+```
+WebPage Elements:
+```
+Element el1 = webScraper.findElementByXpath("//*[@id=\"search\"]");
+Element el2 = webScraper.findElementByName("img",3);
+el1.setText("Android");
+el2.click();
+Element el3 = webScraper.findElementById("result");
+String result = el3.getValue();
 ```
 OnPageLoadedListener:
 ```
@@ -39,13 +49,4 @@ webScraper.clearAll(); //Clear history, cache and cookies
 ```
 ```
 webScraper.reload();
-```
-WebPage Elements:
-```
-Element el1 = webScraper.findElementByXpath("//*[@id=\"search\"]");
-Element el2 = webScraper.findElementByName("img",3);
-el1.setText("Android");
-el2.click();
-Element el3 = webScraper.findElementById("result");
-String result = el3.getValue();
 ```
