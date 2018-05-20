@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Build;
+import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
@@ -11,6 +13,13 @@ import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
+import java.util.Dictionary;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 
 @SuppressLint("SetJavaScriptEnabled,unused")
 public class WebScraper {
@@ -20,11 +29,13 @@ public class WebScraper {
 
     private volatile boolean htmlBool;
     private String Html;
-    private volatile boolean gotElementText;
+    private volatile boolean gotElementText = true;
     private String elementText;
 
     private String URL;
     private String userAgent;
+
+    private Handler handler;
 
     public static int MAX = -1;
 
@@ -36,6 +47,7 @@ public class WebScraper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             WebView.enableSlowWholeDocumentDraw();
         }
+        handler = new Handler();
         web.getSettings().setJavaScriptEnabled(true);
         web.getSettings().setBlockNetworkImage(true);
         web.getSettings().setLoadsImagesAutomatically(false);
@@ -116,12 +128,19 @@ public class WebScraper {
 
     public String getHtml() {
         htmlBool = true;
+        Html = null;
         web.evaluateJavascript("javascript:window.HtmlViewer.showHTML(document.getElementsByTagName('html')[0].innerHTML);", new ValueCallback<String>() {
             @Override
             public void onReceiveValue(String s) {
                 htmlBool = false;
             }
         });
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                htmlBool = false;
+            }
+        },15);
         while (htmlBool) {}
         return Html;
     }
@@ -196,7 +215,9 @@ public class WebScraper {
         web.loadUrl(task);
     }
 
-    protected void run2(String task){
+    protected String run2(String task){
+        while (!gotElementText){}
+        elementText = null;
         gotElementText = false;
         web.evaluateJavascript(task, new ValueCallback<String>() {
             @Override
@@ -205,8 +226,10 @@ public class WebScraper {
             }
         });
         while(!gotElementText){}
-
+        return elementText;
     }
+
+
 
     //FindWebViewElement
     public Element findElementByClassName(String classname, int id){
