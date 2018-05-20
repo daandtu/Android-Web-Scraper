@@ -11,12 +11,13 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-@SuppressLint("SetJavaScriptEnabled")
+@SuppressLint("SetJavaScriptEnabled,unused")
 public class WebScraper {
 
     private Context context;
     private WebView web;
     private volatile String Html;
+    private volatile String elementText;
     private String URL;
     private String userAgent;
 
@@ -174,10 +175,23 @@ public class WebScraper {
         public void showHTML(String html) {
             Html = html;
         }
+
+        public void processContent(String content){
+
+        }
     }
 
     protected void run(String task){
         web.loadUrl(task);
+    }
+
+    @SuppressWarnings("StatementWithEmptyBody")
+    protected String run2(String task){
+        elementText = null;
+        web.loadUrl(task);
+        while (elementText == null) {
+        }
+        return elementText;
     }
 
     //FindWebViewElement

@@ -23,4 +23,8 @@ class Element {
         web.run("javascript:" + elementLocator + ".click();void(0);");
     }
 
+    String getText(){
+        return web.run2("javascript:window.INTERFACE.processContent(" + elementLocator + ".innerText);");
+    }
+
 }
