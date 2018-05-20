@@ -8,6 +8,7 @@ import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.JavascriptInterface;
+import android.webkit.ValueCallback;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -16,8 +17,12 @@ public class WebScraper {
 
     private Context context;
     private WebView web;
-    private volatile String Html;
-    private volatile String elementText;
+
+    private volatile boolean htmlBool;
+    private String Html;
+    private volatile boolean gotElementText;
+    private String elementText;
+
     private String URL;
     private String userAgent;
 
@@ -109,12 +114,15 @@ public class WebScraper {
         return web.getTitle();
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     public String getHtml() {
-        Html = null;
-        web.loadUrl("javascript:window.HtmlViewer.showHTML(document.getElementsByTagName('html')[0].innerHTML);");
-        while (Html == null) {
-        }
+        htmlBool = true;
+        web.evaluateJavascript("javascript:window.HtmlViewer.showHTML(document.getElementsByTagName('html')[0].innerHTML);", new ValueCallback<String>() {
+            @Override
+            public void onReceiveValue(String s) {
+                htmlBool = false;
+            }
+        });
+        while (htmlBool) {}
         return Html;
     }
 
@@ -174,10 +182,13 @@ public class WebScraper {
         @JavascriptInterface
         public void showHTML(String html) {
             Html = html;
+            htmlBool = false;
         }
 
-        public void processContent(String content){
-
+        @JavascriptInterface
+        public void processContent(String elText){
+            elementText = elText;
+            gotElementText = true;
         }
     }
 
@@ -185,13 +196,16 @@ public class WebScraper {
         web.loadUrl(task);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
-    protected String run2(String task){
-        elementText = null;
-        web.loadUrl(task);
-        while (elementText == null) {
-        }
-        return elementText;
+    protected void run2(String task){
+        gotElementText = false;
+        web.evaluateJavascript(task, new ValueCallback<String>() {
+            @Override
+            public void onReceiveValue(String s) {
+                gotElementText = true;
+            }
+        });
+        while(!gotElementText){}
+
     }
 
     //FindWebViewElement
