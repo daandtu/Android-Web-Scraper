@@ -1,5 +1,5 @@
 # android-web-scraper
-Android Web Scraper is a simple library for web automation on android.
+Android Web Scraper is a simple library for android web automation.
 # Usage
 Initialisation and setup possibilities:
 ```
