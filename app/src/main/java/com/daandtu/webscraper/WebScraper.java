@@ -154,7 +154,7 @@ public class WebScraper {
     }
 
     public String getURL() {
-        return URL;
+        return web.getUrl();
     }
 
     public void reload() {
@@ -188,7 +188,7 @@ public class WebScraper {
         return new Element(this, "document.getElementById('" + id + "')" );
     }
     public Element findElementByName(String name){
-        return new Element(this, "document.getElementsByName('" + name + "')" );
+        return new Element(this, "document.getElementsByName('" + name + "')[0]" );
     }
     public Element findElementByXpath(String xpath){
         return new Element(this, "document.evaluate(" + xpath + ", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue" );

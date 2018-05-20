@@ -14,7 +14,7 @@ class Element {
     }
 
     void setText(String text){
-        String t = "javascript:" + elementLocator + ".textContent='" + text + "';void(0);";
+        String t = "javascript:" + elementLocator + ".value='" + text + "';void(0);";
         Log.i("Logmsg",t);
         web.run(t);
     }
