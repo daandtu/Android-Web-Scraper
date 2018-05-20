@@ -212,7 +212,19 @@ public class WebScraper {
         return new Element(this, "document.querySelectorAll('[title=\"" + title + "\"]')[" + String.valueOf(id) + "]");
     }
     public Element findElementByTitle(String title){
-        return findElementByValue(title,0);
+        return findElementByTitle(title,0);
+    }
+    public Element findElementByTagName(String tagName, int id){
+        return new Element(this, "document.getElementsByTagName('" + tagName + "')[" + String.valueOf(id) + "]");
+    }
+    public Element findElementByTagName(String tagName){
+        return findElementByTagName(tagName,0);
+    }
+    public Element findElementByType(String type, int id){
+        return new Element(this, "document.querySelectorAll('[type=\"" + type + "\"]')[" + String.valueOf(id) + "]");
+    }
+    public Element findElementByType(String type){
+        return findElementByType(type,0);
     }
 
 
