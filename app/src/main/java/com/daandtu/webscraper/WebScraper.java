@@ -181,8 +181,11 @@ public class WebScraper {
     }
 
     //FindWebViewElement
+    public Element findElementByClassName(String classname, int id){
+        return new Element(this, "document.getElementsByClassName('" + classname + "')[" + String.valueOf(id) + "]");
+    }
     public Element findElementByClassName(String classname){
-        return new Element(this, "document.getElementsByClassName('" + classname + "')" );
+        return findElementByName(classname, 0);
     }
     public Element findElementById(String id){
         return new Element(this, "document.getElementById('" + id + "')" );
@@ -198,6 +201,18 @@ public class WebScraper {
     }
     public Element findElementByJavaScript(String javascript){
         return new Element(this, javascript);
+    }
+    public Element findElementByValue(String value, int id){
+        return new Element(this, "document.querySelectorAll('[value=\"" + value + "\"]')[" + String.valueOf(id) + "]");
+    }
+    public Element findElementByValue(String value){
+        return findElementByValue(value,0);
+    }
+    public Element findElementByTitle(String title, int id){
+        return new Element(this, "document.querySelectorAll('[title=\"" + title + "\"]')[" + String.valueOf(id) + "]");
+    }
+    public Element findElementByTitle(String title){
+        return findElementByValue(title,0);
     }
 
 
