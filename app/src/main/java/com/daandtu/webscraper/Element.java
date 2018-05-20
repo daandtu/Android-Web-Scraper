@@ -35,4 +35,8 @@ class Element {
         return web.run2("javascript:window.HtmlViewer.processContent(" + elementLocator + ".name);");
     }
 
+    public String getTitle(){
+        return web.run2("javascript:window.HtmlViewer.processContent(" + elementLocator + ".title);");
+    }
+
 }
