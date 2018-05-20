@@ -1,7 +1,7 @@
 # android-web-scraper
 Android Web Scraper is a simple library for android web automation.
 # Usage
-Initialisation and setup possibilities:
+Initialisation and setup:
 ```
 webScraper = new WebScraper(this);
 webScraper.setUserAgentToDesktop(true); //default: false
