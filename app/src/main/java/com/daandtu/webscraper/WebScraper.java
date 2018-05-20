@@ -187,8 +187,11 @@ public class WebScraper {
     public Element findElementById(String id){
         return new Element(this, "document.getElementById('" + id + "')" );
     }
+    public Element findElementByName(String name, int id){
+        return new Element(this, "document.getElementsByName('" + name + "')[" + String.valueOf(id) + "]" );
+    }
     public Element findElementByName(String name){
-        return new Element(this, "document.getElementsByName('" + name + "')[0]" );
+        return findElementByName(name,0);
     }
     public Element findElementByXpath(String xpath){
         return new Element(this, "document.evaluate(" + xpath + ", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue" );
