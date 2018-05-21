@@ -2,7 +2,7 @@
 Android Web Scraper is a simple library for android web automation. You can perform web task in background to fetch website data programmatically.
 
 # Setup
-Add internet permission:
+Add internet permission to *AndroidManifest.xml*:
 ```
 <uses-permission android:name="android.permission.INTERNET"/>
 ```
