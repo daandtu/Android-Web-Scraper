@@ -7,12 +7,12 @@ Add project repository to *build.gradle*:
 repositories {
     maven {
         url "https://dl.bintray.com/daandtu/maven"
-          }
+    }
 }
 ```
 and the following to your dependencies:
 ```
-compile 'com.daandtu:android-web-scraper:1.0.0'
+implementation 'com.daandtu:android-web-scraper:1.0.0'
 ```
 Add internet permission to *AndroidManifest.xml*:
 ```
