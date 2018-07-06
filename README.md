@@ -2,6 +2,18 @@
 Android Web Scraper is a simple library for android web automation. You can perform web task in background to fetch website data programmatically.
 
 # Setup
+Add project repository to *build.gradle*:
+```
+repositories {
+    maven {
+        url "https://dl.bintray.com/daandtu/maven"
+          }
+}
+```
+and the following to your dependencies:
+```
+compile 'com.daandtu:android-web-scraper:1.0.0'
+```
 Add internet permission to *AndroidManifest.xml*:
 ```
 <uses-permission android:name="android.permission.INTERNET"/>
