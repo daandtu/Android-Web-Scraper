@@ -33,7 +33,7 @@ public class WebScraper {
 
     private onPageLoadedListener onpageloadedlistener;
 
-    WebScraper(final Context context) {
+    public WebScraper(final Context context) {
         this.context = context;
         web = new WebView(context);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

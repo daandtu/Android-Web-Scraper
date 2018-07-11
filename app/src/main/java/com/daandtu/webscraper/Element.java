@@ -2,7 +2,7 @@ package com.daandtu.webscraper;
 
 import android.util.Log;
 
-class Element {
+public class Element {
 
     private String elementLocator;
     private WebScraper web;
