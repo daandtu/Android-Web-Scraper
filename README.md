@@ -5,7 +5,7 @@ Android Web Scraper is a simple library for android web automation. You can perf
 The project is hosted on jCenter.
 Add the following to your dependencies:
 ```
-implementation 'com.daandtu:android-web-scraper:1.0.0'
+implementation 'com.daandtu:android-web-scraper:1.0.1'
 ```
 Add internet permission to *AndroidManifest.xml*:
 ```
