@@ -15,7 +15,7 @@ Add internet permission to *AndroidManifest.xml*:
 # Sample usage
 Initialisation:
 ```
-webScraper = new WebScraper(this);
+WebScraper webScraper = new WebScraper(this);
 webScraper.setUserAgentToDesktop(true); //default: false
 webScraper.setLoadImages(true); //default: false
 webScraper.loadURL("https://www.github.com/");
