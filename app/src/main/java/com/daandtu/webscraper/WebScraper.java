@@ -131,6 +131,14 @@ public class WebScraper {
             });
         }
     }
+    public void waitTime(int millis){
+        tasks.add(new Task() {
+            @Override
+            public void run() {
+                waitTime(millis);
+            }
+        });
+    }
     public void waitForPage(){
         tasks.add(new Task() {
             @Override
@@ -296,6 +304,9 @@ public class WebScraper {
     }
     public Element findElementsByValue(String value, int id){
         return new Element(this,Element.VALUE, value, id);
+    }
+    public Element findElementByInnerHtml(String innerHtml, String type){
+        return new Element(this, Element.HTML, "//" + type + "[contains(text(), '" + innerHtml +"')]", 0);
     }
     public Element findElementByValue(String value){
         return findElementsByValue(value,0);

@@ -6,7 +6,7 @@ public class Element {
     private int type, count;
     private WebScraper web;
 
-    public static final int NAME = 1, XPATH = 2, CLASS = 3, ID = 4, VALUE = 5, TITLE = 6, TAG = 7, TYPE = 8, ATTRIBUTE = 9, CUSTOM = 0;
+    public static final int NAME = 1, XPATH = 2, CLASS = 3, ID = 4, VALUE = 5, TITLE = 6, TAG = 7, TYPE = 8, ATTRIBUTE = 9, HTML = 10, CUSTOM = 0;
 
     public Element (WebScraper web, int type, String elementLocator, int count){
         this.web = web;
@@ -36,6 +36,9 @@ public class Element {
                 return "document.querySelectorAll(\"[type=" + elementLocator + "]\")[" + count + "]";
             case ATTRIBUTE:
                 return "document.querySelectorAll(\"[" + elementLocator + "]\")[" + count + "]";
+            case HTML:
+                return "document.evaluate(\"" + elementLocator +
+                    "\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue";
             case CUSTOM:
                 return elementLocator;
             default:
