@@ -21,7 +21,7 @@ public class Element {
                 return "document.getElementsByName(\"" + elementLocator + "\")[" + count + "]";
             case XPATH:
                 return "document.evaluate(\"" + elementLocator +
-                        "\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).snapshotItem(" + count + ")";
+                        "\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue";
             case CLASS:
                 return "document.getElementsByClassName(\"" + elementLocator + "\")[" + count + "]";
             case ID:
