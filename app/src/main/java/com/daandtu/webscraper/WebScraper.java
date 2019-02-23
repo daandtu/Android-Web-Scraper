@@ -3,8 +3,10 @@ package com.daandtu.webscraper;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.net.http.SslCertificate;
 import android.os.Build;
 import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
@@ -13,25 +15,27 @@ import android.webkit.ValueCallback;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-@SuppressLint("SetJavaScriptEnabled,unused")
+import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.Hashtable;
+import java.util.List;
+
+import static java.lang.Thread.sleep;
+
+@SuppressLint("SetJavaScriptEnabled,unused,Deprecation")
 public class WebScraper {
 
     private Context context;
     private WebView web;
 
-    private volatile boolean htmlBool;
-    private String Html;
-    private volatile boolean gotElementText = true;
-    private String elementText;
-
     private String URL;
     private String userAgent;
 
-    private Handler handler;
+    private PageLoadedListener pageLoadedListener;
+    private WaitForHtml HtmlListener;
+    private List<Task> tasks = new ArrayList<>();
 
     public static int MAX = -1;
-
-    private onPageLoadedListener onpageloadedlistener;
 
     public WebScraper(final Context context) {
         this.context = context;
@@ -39,7 +43,6 @@ public class WebScraper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             WebView.enableSlowWholeDocumentDraw();
         }
-        handler = new Handler();
         web.getSettings().setJavaScriptEnabled(true);
         web.getSettings().setBlockNetworkImage(true);
         web.getSettings().setLoadsImagesAutomatically(false);
@@ -48,23 +51,142 @@ public class WebScraper {
         userAgent = web.getSettings().getUserAgentString();
         web.setWebViewClient(new WebViewClient() {
             public void onPageFinished(WebView view, String url) {
-
-                if (onpageloadedlistener != null) {
-                    onpageloadedlistener.loaded(url);
+                if (pageLoadedListener != null){
+                    URL = url;
+                    pageLoadedListener.loaded(url);
+                    pageLoadedListener = null;
                 }
-
                 web.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                         View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
                 web.layout(0, 0, web.getMeasuredWidth(), web.getMeasuredHeight());
+                //noinspection deprecation
                 web.setDrawingCacheEnabled(true);
             }
         });
     }
-
-    public Bitmap takeScreenshot() { //Pay attention with big webpages
-        return takeScreenshot(MAX, MAX);
+    public View getView() {
+        return web;
     }
 
+
+
+    private class JSInterface {
+        private Context ctx;
+        JSInterface(Context ctx) {
+            this.ctx = ctx;
+        }
+        @JavascriptInterface
+        public void showHTML(String html) {
+            if (HtmlListener != null){
+                HtmlListener.gotHtml(html);
+            }
+        }
+    }
+
+    //Web tasks
+    public void execute(WebTaskListener webTaskListener){
+        Handler handler = new Handler();
+        final int[] count = {0};
+        final Dictionary<String, String> result = new Hashtable<>();
+        Log.i("Webscraper", "Starting execution");
+        TaskListener taskListener = () -> {
+            Log.i("Webscraper", "Task Nr.: " + String.valueOf(count[0]) );
+            if (count[0] < tasks.size()-1) {
+                count[0]++;
+                handler.post(tasks.get(count[0]));
+            }else{
+                webTaskListener.finished(result);
+            }
+        };
+        for (Task task: tasks) task.set(taskListener, result);
+        handler.post(tasks.get(0));
+    }
+    protected void addTask(String javascript, boolean storeResult, String key){
+        tasks.add(new Task() {
+            @Override
+            public void run() {
+                web.evaluateJavascript(javascript, s -> {
+                    if (storeResult) result.put(key, s.substring(1, s.length() - 1));
+                    taskListener.done();
+                });
+            }
+        });
+    }
+    protected void addTask(String javascript){
+        addTask(javascript, false, null);
+    }
+    public void waitForElement(Element element, int timeout){
+        String js = "javascript:document.body.contains(" + element.getElement() + ")";
+        for (int i = 0; i < timeout/300; i++){
+            tasks.add(new Task() {
+                @Override
+                public void run() {
+                    web.evaluateJavascript(js, s -> {
+                        if (s.equals("false")){
+                            waitTime(300);
+                        }
+                        taskListener.done();
+                    });
+                }
+            });
+        }
+    }
+    public void waitForPage(){
+        tasks.add(new Task() {
+            @Override
+            public void run() {
+                pageLoadedListener = url -> taskListener.done();
+            }
+        });
+    }
+    public void loadURL(String Url){
+        tasks.add(new Task() {
+            @Override
+            public void run() {
+                web.loadUrl(Url);
+                pageLoadedListener = url -> taskListener.done();
+            }
+        });
+    }
+    public void reload(){
+        tasks.add(new Task() {
+            @Override
+            public void run() {
+                web.reload();
+                pageLoadedListener = url -> taskListener.done();
+            }
+        });
+    }
+    public void reload(PageLoadedListener listener) {
+        web.reload();
+        pageLoadedListener = listener;
+    }
+    public void getHtml(WaitForHtml htmlListener) {
+        //web.evaluateJavascript("(function(){return document.getElementsByTagName('html')[0].innerHTML})();", htmlListener::gotHtml);
+        web.evaluateJavascript("javascript:window.HtmlViewer.showHTML(document.getElementsByTagName('html')[0].innerHTML);", null);
+        this.HtmlListener = htmlListener;
+    }
+    public void loadURL(String URL, PageLoadedListener listener) {
+        this.URL = URL;
+        web.loadUrl(URL);
+        pageLoadedListener = listener;
+    }
+
+    //Get webview attributes
+    public String getWebsiteTitle(){
+        return web.getTitle();
+    }
+    public String getURL() {
+        return web.getUrl();
+    }
+    public Bitmap getFavicon(){
+        return web.getFavicon();
+    }
+    public SslCertificate getSslCertificate(){
+        return web.getCertificate();
+    }
+
+    //Setup
     public void setUserAgentToDesktop(boolean desktop){
         if (desktop){
             String osString = userAgent.substring(userAgent.indexOf("("), userAgent.indexOf(")") + 1);
@@ -73,70 +195,51 @@ public class WebScraper {
             web.getSettings().setUserAgentString(userAgent);
         }
     }
+    public void setLoadImages(boolean enabled) {
+        web.getSettings().setBlockNetworkImage(!enabled);
+        web.getSettings().setLoadsImagesAutomatically(enabled);
+    }
 
+    //Screenshots
+    public Bitmap takeScreenshot() { //Pay attention with big webpages
+        return takeScreenshot(MAX, MAX);
+    }
     public Bitmap takeScreenshot(int width, int height) {
-        if (width < 0 || height < 0) {
-            web.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
-        }
-        if (width < 0) {
-            width = web.getMeasuredWidth();
-        }
-        if (height < 0) {
-            height = web.getMeasuredHeight();
-        }
-        web.layout(0, 0, width, height);
-        web.setDrawingCacheEnabled(true);
         try {
-            Thread.sleep(30);
-        } catch (InterruptedException ignored) {
-        }
-        try {
+            if (width < 0 || height < 0) {
+                web.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+            }
+            if (width < 0) {
+                width = web.getMeasuredWidth();
+            }
+            if (height < 0) {
+                height = web.getMeasuredHeight();
+            }
+            web.layout(0, 0, width, height);
+            //noinspection deprecation
+            web.setDrawingCacheEnabled(true);
+            try {
+                sleep(30);
+            } catch (InterruptedException ignored) {}
+            //noinspection deprecation
             return Bitmap.createBitmap(web.getDrawingCache());
         } catch (NullPointerException ignored) {
             return null;
         }
     }
-
     public int getMaxHeight() {
         web.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
         return web.getMeasuredHeight();
     }
-
     public int getMaxWidth() {
         web.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
         return web.getMeasuredWidth();
     }
 
-    public View getView() {
-        return web;
-    }
-
-    public String getWebsiteTitle(){
-        return web.getTitle();
-    }
-
-    public String getHtml() {
-        htmlBool = true;
-        Html = null;
-        web.evaluateJavascript("javascript:window.HtmlViewer.showHTML(document.getElementsByTagName('html')[0].innerHTML);", new ValueCallback<String>() {
-            @Override
-            public void onReceiveValue(String s) {
-                htmlBool = false;
-            }
-        });
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                htmlBool = false;
-            }
-        },15);
-        while (htmlBool) {}
-        return Html;
-    }
-
+    //Browser data
     public void clearHistory() {
         web.clearHistory();
     }
@@ -163,119 +266,83 @@ public class WebScraper {
         clearCookies();
     }
 
-    public void setLoadImages(boolean enabled) {
-        web.getSettings().setBlockNetworkImage(!enabled);
-        web.getSettings().setLoadsImagesAutomatically(enabled);
-    }
-
-    public void loadURL(String URL) {
-        this.URL = URL;
-        web.loadUrl(URL);
-    }
-
-    public String getURL() {
-        return web.getUrl();
-    }
-
-    public void reload() {
-        web.reload();
-    }
-
-
-    private class JSInterface {
-
-        private Context ctx;
-
-        JSInterface(Context ctx) {
-            this.ctx = ctx;
-        }
-
-        @JavascriptInterface
-        public void showHTML(String html) {
-            Html = html;
-            htmlBool = false;
-        }
-
-        @JavascriptInterface
-        public void processContent(String elText){
-            elementText = elText;
-            gotElementText = true;
-        }
-    }
-
-    protected void run(String task){
-        web.loadUrl(task);
-    }
-
-    protected String run2(String task){
-        while (!gotElementText){}
-        elementText = null;
-        gotElementText = false;
-        web.evaluateJavascript(task, new ValueCallback<String>() {
-            @Override
-            public void onReceiveValue(String s) {
-                gotElementText = true;
-            }
-        });
-        while(!gotElementText){}
-        return elementText;
-    }
-
-
-
     //FindWebViewElement
-    public Element findElementByClassName(String classname, int id){
-        return new Element(this, "document.getElementsByClassName('" + classname + "')[" + String.valueOf(id) + "]");
+    public Element findElementsByClassName(String classname, int id){
+        return new Element(this, Element.CLASS, classname, id);
     }
     public Element findElementByClassName(String classname){
-        return findElementByName(classname, 0);
+        return findElementsByName(classname, 0);
     }
     public Element findElementById(String id){
-        return new Element(this, "document.getElementById('" + id + "')" );
+        return new Element(this, Element.ID, id, 0);
     }
-    public Element findElementByName(String name, int id){
-        return new Element(this, "document.getElementsByName('" + name + "')[" + String.valueOf(id) + "]" );
+    public Element findElementsByName(String name, int id){
+        return new Element(this, Element.NAME, name,id);
     }
     public Element findElementByName(String name){
-        return findElementByName(name,0);
+        return findElementsByName(name,0);
     }
     public Element findElementByXpath(String xpath){
-        return new Element(this, "document.evaluate(" + xpath + ", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue" );
+        return new Element(this, Element.XPATH, xpath,0);
     }
-    public Element findElementByJavaScript(String javascript){
-        return new Element(this, javascript);
+    public Element findElementByCustomJavascript(String javascript){
+        return new Element(this, Element.CUSTOM, javascript, 0);
     }
-    public Element findElementByValue(String value, int id){
-        return new Element(this, "document.querySelectorAll('[value=\"" + value + "\"]')[" + String.valueOf(id) + "]");
+    public Element findElementsByAttribute(String attribute, String value, int count){
+        return new Element(this, Element.ATTRIBUTE, attribute + "=" + value,count);
+    }
+    public Element findElementByAttribute(String attribute, String value){
+        return findElementsByAttribute(attribute, value, 0);
+    }
+    public Element findElementsByValue(String value, int id){
+        return new Element(this,Element.VALUE, value, id);
     }
     public Element findElementByValue(String value){
-        return findElementByValue(value,0);
+        return findElementsByValue(value,0);
     }
-    public Element findElementByTitle(String title, int id){
-        return new Element(this, "document.querySelectorAll('[title=\"" + title + "\"]')[" + String.valueOf(id) + "]");
+    public Element findElementsByTitle(String title, int id){
+        return new Element(this, Element.TITLE,title, id);
     }
     public Element findElementByTitle(String title){
-        return findElementByTitle(title,0);
+        return findElementsByTitle(title,0);
     }
-    public Element findElementByTagName(String tagName, int id){
-        return new Element(this, "document.getElementsByTagName('" + tagName + "')[" + String.valueOf(id) + "]");
+    public Element findElementsByTagName(String tagName, int id){
+        return new Element(this,Element.TAG,tagName, id);
     }
     public Element findElementByTagName(String tagName){
-        return findElementByTagName(tagName,0);
+        return findElementsByTagName(tagName,0);
     }
-    public Element findElementByType(String type, int id){
-        return new Element(this, "document.querySelectorAll('[type=\"" + type + "\"]')[" + String.valueOf(id) + "]");
+    public Element findElementsByType(String type, int id){
+        return new Element(this, Element.TYPE, type, id);
     }
     public Element findElementByType(String type){
-        return findElementByType(type,0);
+        return findElementsByType(type,0);
     }
 
-
-    public void setOnPageLoadedListener(onPageLoadedListener onpageloadedlistener){
-        this.onpageloadedlistener = onpageloadedlistener;
+    public interface PageLoadedListener{
+        void loaded(String url);
+    }
+    public interface WaitForHtml{
+        void gotHtml(String html);
+    }
+    public interface WebTaskListener{
+        void finished(Dictionary<String, String> result);
+    }
+    private interface TaskListener{
+        void done();
     }
 
-    public interface onPageLoadedListener{
-        void loaded(String URL);
+    private abstract  class Task implements Runnable{
+        TaskListener taskListener;
+        Dictionary<String,String> result;
+        public void set(TaskListener taskListener, Dictionary<String, String> result){
+            this.taskListener = taskListener;
+            this.result = result;
+        }
+        public void waitTime(int time){
+            try {
+                sleep(time);
+            } catch (InterruptedException ignored) {}
+        }
     }
 }

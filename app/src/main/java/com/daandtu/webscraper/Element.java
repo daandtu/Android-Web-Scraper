@@ -1,42 +1,78 @@
 package com.daandtu.webscraper;
 
-import android.util.Log;
-
 public class Element {
 
     private String elementLocator;
+    private int type, count;
     private WebScraper web;
 
-    public Element (WebScraper web, String elementLocator){
+    public static final int NAME = 1, XPATH = 2, CLASS = 3, ID = 4, VALUE = 5, TITLE = 6, TAG = 7, TYPE = 8, ATTRIBUTE = 9, CUSTOM = 0;
+
+    public Element (WebScraper web, int type, String elementLocator, int count){
         this.web = web;
         this.elementLocator = elementLocator;
+        this.type = type;
+        this.count = count;
+    }
 
+    protected String getElement(){
+        switch (this.type) {
+            case NAME:
+                return "document.getElementsByName(\"" + elementLocator + "\")[" + count + "]";
+            case XPATH:
+                return "document.evaluate(\"" + elementLocator +
+                        "\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).snapshotItem(" + count + ")";
+            case CLASS:
+                return "document.getElementsByClassName(\"" + elementLocator + "\")[" + count + "]";
+            case ID:
+                return "document.getElementById(\"" + elementLocator + "\")";
+            case VALUE:
+                return "document.querySelectorAll(\"[value=" + elementLocator + "]\")[" + count + "]";
+            case TITLE:
+                return "document.querySelectorAll(\"[title=" + elementLocator + "]\")[" + count + "]";
+            case TAG:
+                return "document.getElementsByTagName(\"" + elementLocator + "\")";
+            case TYPE:
+                return "document.querySelectorAll(\"[type=" + elementLocator + "]\")[" + count + "]";
+            case ATTRIBUTE:
+                return "document.querySelectorAll(\"[" + elementLocator + "]\")[" + count + "]";
+            case CUSTOM:
+                return elementLocator;
+            default:
+                return null;
+        }
+    }
+
+    public void setAttribute(String attribute, String value){
+        web.addTask("javascript:" + getElement() + ".setAttribute(\"" + attribute + "\",\"" + value + "\");void(0);");
     }
 
     public void setText(String text){
-        String t = "javascript:" + elementLocator + ".value='" + text + "';void(0);";
-        Log.i("Logmsg",t);
-        web.run(t);
+        web.addTask("javascript:" + getElement() + ".innerHTML = \"" + text + "\";void(0);");
     }
-
+    public void inputText(String text){
+        setAttribute("value",text);
+    }
+    public void setBackgroundColor(String color){  // hex value or color name
+        web.addTask("javascript:" + getElement() + ".style.backgroundColor = \"" + color + "\";void(0);");
+    }
     public void click(){
-        web.run("javascript:" + elementLocator + ".click();void(0);");
+        web.addTask("javascript:" + getElement() + ".click();void(0);");
     }
-
-    public String getText(){
-        return web.run2("javascript:window.HtmlViewer.processContent(" + elementLocator + ".innerText);");
+    public void getAttribute(String attribute, String key){
+        web.addTask(getElement() + "."+ attribute,true, key);
     }
-
-    public String getValue(){
-        return web.run2("javascript:window.HtmlViewer.processContent(" + elementLocator + ".value);");
+    public void getName(String key){
+        getAttribute("name", key);
     }
-
-    public String getName(){
-        return web.run2("javascript:window.HtmlViewer.processContent(" + elementLocator + ".name);");
+    public void getTitle(String key){
+        getAttribute("title", key);
     }
-
-    public String getTitle(){
-        return web.run2("javascript:window.HtmlViewer.processContent(" + elementLocator + ".title);");
+    public void getText(String key){
+        getAttribute("innerHTML", key);
+    }
+    public void getValue(String key){
+        getAttribute("value", key);
     }
 
 }
