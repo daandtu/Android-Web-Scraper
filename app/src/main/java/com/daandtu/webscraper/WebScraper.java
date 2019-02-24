@@ -133,6 +133,15 @@ public class WebScraper {
             });
         }
     }
+    public void log(String text){
+        tasks.add(new Task() {
+            @Override
+            public void run() {
+                Log.i("Webscraper",text);
+                taskListener.done();
+            }
+        });
+    }
     public void waitForAttribute(Element element, String attribute, String value, int timeout){
         String js = "javascript:" + element.getElement() + "." + attribute + ";";
         for (int i = 0; i < timeout/300; i++){
