@@ -7,11 +7,12 @@ import android.net.http.SslCertificate;
 import android.os.Build;
 import android.os.Handler;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.BaseInputConnection;
 import android.webkit.CookieManager;
 import android.webkit.CookieSyncManager;
 import android.webkit.JavascriptInterface;
-import android.webkit.ValueCallback;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -51,6 +52,7 @@ public class WebScraper {
         userAgent = web.getSettings().getUserAgentString();
         web.setWebViewClient(new WebViewClient() {
             public void onPageFinished(WebView view, String url) {
+                Log.i("Webscraper",url);
                 if (pageLoadedListener != null){
                     URL = url;
                     pageLoadedListener.loaded(url);
@@ -131,11 +133,50 @@ public class WebScraper {
             });
         }
     }
+    public void waitForAttribute(Element element, String attribute, String value, int timeout){
+        String js = "javascript:" + element.getElement() + "." + attribute + ";";
+        for (int i = 0; i < timeout/300; i++){
+            tasks.add(new Task() {
+                @Override
+                public void run() {
+                    web.evaluateJavascript(js, s -> {
+                        if (!s.equals(value)){
+                            waitTime(300);
+                        }
+                        taskListener.done();
+                    });
+                }
+            });
+        }
+    }
+    public void typeText(int... keyevents){
+        tasks.add(new Task() {
+            @Override
+            public void run() {
+                BaseInputConnection inputConnection = new BaseInputConnection(getView(),true);
+                for (int i: keyevents){
+                    inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN,i));
+                    inputConnection.sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP,i));
+                }
+                waitTime(keyevents.length * 40);
+                taskListener.done();
+            }
+        });
+    }
+    public void typeText(String text){
+        int[] keys = new int[text.length()];
+        for (int i = 0; i < text.length(); i++){
+            keys[i] = KEYCODES(text.toLowerCase().charAt(i));
+        }
+        typeText(keys);
+    }
+
     public void waitTime(int millis){
         tasks.add(new Task() {
             @Override
             public void run() {
                 waitTime(millis);
+                taskListener.done();
             }
         });
     }
@@ -354,6 +395,55 @@ public class WebScraper {
             try {
                 sleep(time);
             } catch (InterruptedException ignored) {}
+        }
+    }
+
+    private static int KEYCODES(char ch){
+        switch (ch) {
+            case 'a': return KeyEvent.KEYCODE_A;
+            case 'b': return KeyEvent.KEYCODE_B;
+            case 'c': return KeyEvent.KEYCODE_C;
+            case 'd': return KeyEvent.KEYCODE_D;
+            case 'e': return KeyEvent.KEYCODE_E;
+            case 'f': return KeyEvent.KEYCODE_F;
+            case 'g': return KeyEvent.KEYCODE_G;
+            case 'h': return KeyEvent.KEYCODE_H;
+            case 'i': return KeyEvent.KEYCODE_I;
+            case 'j': return KeyEvent.KEYCODE_J;
+            case 'k': return KeyEvent.KEYCODE_K;
+            case 'l': return KeyEvent.KEYCODE_L;
+            case 'm': return KeyEvent.KEYCODE_M;
+            case 'n': return KeyEvent.KEYCODE_N;
+            case 'o': return KeyEvent.KEYCODE_O;
+            case 'p': return KeyEvent.KEYCODE_P;
+            case 'q': return KeyEvent.KEYCODE_Q;
+            case 'r': return KeyEvent.KEYCODE_R;
+            case 's': return KeyEvent.KEYCODE_S;
+            case 't': return KeyEvent.KEYCODE_T;
+            case 'u': return KeyEvent.KEYCODE_U;
+            case 'v': return KeyEvent.KEYCODE_V;
+            case 'w': return KeyEvent.KEYCODE_W;
+            case 'x': return KeyEvent.KEYCODE_X;
+            case 'y': return KeyEvent.KEYCODE_Y;
+            case 'z': return KeyEvent.KEYCODE_Z;
+            case '0': return KeyEvent.KEYCODE_0;
+            case '1': return KeyEvent.KEYCODE_1;
+            case '2': return KeyEvent.KEYCODE_2;
+            case '3': return KeyEvent.KEYCODE_3;
+            case '4': return KeyEvent.KEYCODE_4;
+            case '5': return KeyEvent.KEYCODE_5;
+            case '6': return KeyEvent.KEYCODE_6;
+            case '7': return KeyEvent.KEYCODE_7;
+            case '8': return KeyEvent.KEYCODE_8;
+            case '9': return KeyEvent.KEYCODE_9;
+            case '@': return KeyEvent.KEYCODE_AT;
+            case '-': return KeyEvent.KEYCODE_MINUS;
+            case '/': return KeyEvent.KEYCODE_SLASH;
+            case '.': return KeyEvent.KEYCODE_PERIOD;
+            case ',': return KeyEvent.KEYCODE_COMMA;
+            case ';': return KeyEvent.KEYCODE_SEMICOLON;
+            case ' ': return KeyEvent.KEYCODE_SPACE;
+            default: return 0;
         }
     }
 }

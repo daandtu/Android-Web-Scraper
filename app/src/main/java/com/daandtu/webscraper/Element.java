@@ -68,6 +68,10 @@ public class Element {
     public void getName(String key){
         getAttribute("name", key);
     }
+    public void focus(){
+        web.addTask("javascript:" + getElement() + ".focus();void(0);");
+        web.addTask("javascript:" + getElement() + ".focus();void(0);");
+    }
     public void getTitle(String key){
         getAttribute("title", key);
     }
