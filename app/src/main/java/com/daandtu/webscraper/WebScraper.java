@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.http.SslCertificate;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Handler;
 import android.util.Log;
@@ -31,6 +33,8 @@ public class WebScraper {
 
     private String URL;
     private String userAgent;
+
+    WifiManager wifiManager;
 
     private PageLoadedListener pageLoadedListener;
     private WaitForHtml HtmlListener;
@@ -454,5 +458,26 @@ public class WebScraper {
             case ' ': return KeyEvent.KEYCODE_SPACE;
             default: return 0;
         }
+    }
+
+    //Network options
+    public boolean isWifiEnabled(){
+        if(wifiManager == null){
+            wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        }
+        return wifiManager.isWifiEnabled();
+    }
+    public void setWifiEnabled(boolean enabled){
+        if(wifiManager == null){
+            wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        }
+        wifiManager.setWifiEnabled(enabled);
+    }
+    public boolean isWifiConnected(){
+        if(wifiManager == null){
+            wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        }
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        return wifiInfo.getNetworkId() != -1;
     }
 }
