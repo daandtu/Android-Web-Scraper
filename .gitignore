@@ -1,11 +1,23 @@
+#built application files
+*.apk
+*.ap_
+*.aab
+
+# files for the dex VM
+*.dex
+
+# Java class files
+*.class
+
+# generated files
+bin/
+gen/
+
+#Android Studio
 *.iml
+.idea
 .gradle
 local.properties
-/local.properties
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
 .DS_Store
-/build
-/captures
+app/build
 .externalNativeBuild
