@@ -1,0 +1,3 @@
+include ':webscraper'
+include ':app'
+rootProject.name = "Test"
